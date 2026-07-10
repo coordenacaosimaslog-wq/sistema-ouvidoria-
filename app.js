@@ -420,6 +420,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    window.deleteComplaint = function(id) {
+        if (confirm(`Tem certeza que deseja apagar a reclamação ${id} permanentemente? Essa ação não pode ser desfeita.`)) {
+            db.collection("complaints").doc(id).delete().catch(err => {
+                console.error("Erro ao apagar reclamação:", err);
+                alert("Erro ao apagar reclamação na nuvem.");
+            });
+        }
+    };
+
     // --- Export / Import Backup (Desativados para nuvem) ---
     // Funções mantidas no código para legado, mas botões ocultos
     if (btnExport && importFile) {
@@ -605,9 +614,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><span class="status-badge ${statusClass}">${statusLabel}</span></td>
                     <td>
                         <div style="display: flex; gap: 0.5rem;">
-                            <button class="btn-action btn-edit" onclick="editComplaint('${c.id}')" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);">Editar</button>
-                            <button class="btn-action" onclick="viewDetails('${c.id}')">Ler</button>
+                            <button class="btn-action btn-edit" onclick="editComplaint('${c.id}')" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2);" title="Editar">✏️</button>
+                            <button class="btn-action" onclick="viewDetails('${c.id}')" title="Ler Detalhes">📄</button>
                             <button class="btn-action" onclick="toggleStatus('${c.id}')">${actionLabel}</button>
+                            <button class="btn-action btn-delete" onclick="deleteComplaint('${c.id}')" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2);" title="Apagar">🗑️</button>
                         </div>
                     </td>
                 `;
