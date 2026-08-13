@@ -541,12 +541,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateDashboard() {
-        // Update KPIs (Globais)
-        const total = complaints.length;
-        const open = complaints.filter(c => c.status === 'open').length;
-        const inProgress = complaints.filter(c => c.status === 'in_progress').length;
-        const closed = complaints.filter(c => c.status === 'closed').length;
-        const invalid = complaints.filter(c => c.status === 'invalid').length;
+        // Apply filters
+        let filteredComplaints = complaints;
+        if (filterBranch && filterBranch.value !== 'all') {
+            filteredComplaints = filteredComplaints.filter(c => c.branch === filterBranch.value);
+        }
+        if (filterStatus && filterStatus.value !== 'all') {
+            filteredComplaints = filteredComplaints.filter(c => c.status === filterStatus.value);
+        }
+
+        // Update KPIs (Dinâmicos)
+        const total = filteredComplaints.length;
+        const open = filteredComplaints.filter(c => c.status === 'open').length;
+        const inProgress = filteredComplaints.filter(c => c.status === 'in_progress').length;
+        const closed = filteredComplaints.filter(c => c.status === 'closed').length;
+        const invalid = filteredComplaints.filter(c => c.status === 'invalid').length;
 
         const kpiTotal = document.getElementById('kpi-total');
         const kpiProgress = document.getElementById('kpi-progress');
@@ -557,15 +566,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiProgress) kpiProgress.textContent = inProgress;
         if (kpiClosed) kpiClosed.textContent = closed;
         if (kpiInvalid) kpiInvalid.textContent = invalid;
-
-        // Apply filters
-        let filteredComplaints = complaints;
-        if (filterBranch && filterBranch.value !== 'all') {
-            filteredComplaints = filteredComplaints.filter(c => c.branch === filterBranch.value);
-        }
-        if (filterStatus && filterStatus.value !== 'all') {
-            filteredComplaints = filteredComplaints.filter(c => c.status === filterStatus.value);
-        }
 
         tableBody.innerHTML = '';
 
