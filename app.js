@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const complaintData = {
             date: formData.get('date'),
             branch: formData.get('branch'),
+            unidade: formData.get('unidade'),
             manager: formData.get('manager'),
             name: formData.get('name'),
             category: formData.get('category') === 'OUTROS' ? formData.get('category_other') : formData.get('category'),
@@ -317,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Fill the form
         document.getElementById('branch').value = c.branch || '';
+        document.getElementById('unidade').value = c.unidade || '';
         document.getElementById('manager').value = c.manager || '';
         document.getElementById('date').value = c.date || '';
         document.getElementById('name').value = c.name || '';
@@ -498,6 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${formatItem('Status', statusLabelModal)}
             ${formatItem('Data da Reclamação', c.date ? new Date(c.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-')}
             ${formatItem('Filial', c.branch)}
+            ${formatItem('Unidade', c.unidade)}
             ${formatItem('Gestor', c.manager)}
             ${formatItem('Cliente', c.name)}
             <hr style="border:0; border-top:1px solid var(--border-color); margin: 0.5rem 0;">
