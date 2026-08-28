@@ -536,18 +536,68 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const filterBranch = document.getElementById('filterBranch');
+    const filterUnidade = document.getElementById('filterUnidade');
     const filterStatus = document.getElementById('filterStatus');
 
     if (filterBranch && filterStatus) {
         filterBranch.addEventListener('change', updateDashboard);
         filterStatus.addEventListener('change', updateDashboard);
     }
+    if (filterUnidade) {
+        filterUnidade.addEventListener('change', updateDashboard);
+    }
 
     function updateDashboard() {
+        // Popula filtro Unidade de forma dinâmica
+        if (filterUnidade) {
+            const currentValue = filterUnidade.value;
+            filterUnidade.innerHTML = '<option value="all">Todas as Unidades</option>';
+            const unidadesSet = new Set();
+            let hasEmptyUnidade = false;
+            
+            complaints.forEach(c => {
+                if (c.unidade && c.unidade.trim() !== '') {
+                    unidadesSet.add(c.unidade.trim());
+                } else {
+                    hasEmptyUnidade = true;
+                }
+            });
+            
+            const unidades = Array.from(unidadesSet).sort();
+            unidades.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                filterUnidade.appendChild(opt);
+            });
+            
+            if (hasEmptyUnidade) {
+                const opt = document.createElement('option');
+                opt.value = 'Unidade não informada';
+                opt.textContent = 'Unidade não informada';
+                filterUnidade.appendChild(opt);
+            }
+            
+            if (currentValue && currentValue !== 'all' && (unidades.includes(currentValue) || (currentValue === 'Unidade não informada' && hasEmptyUnidade))) {
+                filterUnidade.value = currentValue;
+            } else {
+                filterUnidade.value = 'all';
+            }
+        }
+
         // Apply filters
         let filteredComplaints = complaints;
         if (filterBranch && filterBranch.value !== 'all') {
             filteredComplaints = filteredComplaints.filter(c => c.branch === filterBranch.value);
+        }
+        if (filterUnidade && filterUnidade.value !== 'all') {
+            filteredComplaints = filteredComplaints.filter(c => {
+                const u = c.unidade ? c.unidade.trim() : '';
+                if (filterUnidade.value === 'Unidade não informada') {
+                    return u === '';
+                }
+                return u === filterUnidade.value;
+            });
         }
         if (filterStatus && filterStatus.value !== 'all') {
             filteredComplaints = filteredComplaints.filter(c => c.status === filterStatus.value);
@@ -561,7 +611,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const invalid = filteredComplaints.filter(c => c.status === 'invalid').length;
 
         const kpiTotal = document.getElementById('kpi-total');
+        const kpiOpen = document.getElementById('kpi-open');
         const kpiProgress = document.getElementById('kpi-progress');
+        const kpiClosed = document.getElementById('kpi-closed');
         const kpiInvalid = document.getElementById('kpi-invalid');
 
         if (kpiTotal) kpiTotal.textContent = total;
@@ -605,11 +657,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (isLate) {
                     tr.className = 'row-late';
                 }
+                
+                const displayUnidade = (c.unidade && c.unidade.trim() !== '') ? c.unidade : 'Unidade não informada';
 
                 tr.innerHTML = `
                     <td><strong>${c.id}</strong></td>
                     <td>${c.date ? new Date(c.date + 'T00:00:00').toLocaleDateString('pt-BR') : '-'}</td>
                     <td>${c.branch}</td>
+                    <td>${displayUnidade}</td>
                     <td>${c.manager || '-'}</td>
                     <td>${c.name}</td>
                     <td style="text-transform: capitalize;">${c.category}</td>
