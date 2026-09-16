@@ -106,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Management (Firebase) ---
     let complaints = [];
+    let currentFilteredComplaints = [];
     let editingComplaintId = null;
 
     db.collection("complaints").orderBy("createdAt", "desc").onSnapshot((snapshot) => {
@@ -622,6 +623,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (kpiClosed) kpiClosed.textContent = closed;
         if (kpiInvalid) kpiInvalid.textContent = invalid;
 
+        currentFilteredComplaints = filteredComplaints;
+
         tableBody.innerHTML = '';
 
         if (filteredComplaints.length === 0) {
@@ -682,6 +685,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 tableBody.appendChild(tr);
             });
         }
+    }
+
+    const btnExportExcel = document.getElementById('btnExportExcel');
+    if (btnExportExcel) {
+        btnExportExcel.addEventListener('click', () => {
+            if (typeof XLSX === 'undefined') {
+                alert('Biblioteca Excel não carregada.');
+                return;
+            }
+
+            const exportData = currentFilteredComplaints.map(c => {
+                let statusTraduzido = c.status;
+                if (c.status === 'open') statusTraduzido = 'Em Aberto';
+                else if (c.status === 'in_progress') statusTraduzido = 'Em Tratativa';
+                else if (c.status === 'closed') statusTraduzido = 'Fechada';
+                else if (c.status === 'invalid') statusTraduzido = 'Não Procede';
+
+                return {
+                    'ID': c.id || '',
+                    'Data da Reclamação': c.date ? new Date(c.date + 'T00:00:00').toLocaleDateString('pt-BR') : '',
+                    'Filial': c.branch || '',
+                    'Unidade': c.unidade || '',
+                    'Gestor Responsável': c.manager || '',
+                    'Cliente': c.name || '',
+                    'Categoria': c.category || '',
+                    'Origem': c.origin || '',
+                    'Detalhes': c.description || '',
+                    'Status': statusTraduzido,
+                    'Causa Raiz': c.rootCause || '',
+                    'Ação do Plano': c.actionPlanAction || '',
+                    'Responsável da Ação': c.actionPlanResponsible || '',
+                    'Prazo da Ação': c.actionPlanDeadline ? new Date(c.actionPlanDeadline + 'T00:00:00').toLocaleDateString('pt-BR') : '',
+                    'Eficácia': c.actionPlanEfficacy || '',
+                    'Data de Conclusão': c.completionDate ? new Date(c.completionDate + 'T00:00:00').toLocaleDateString('pt-BR') : '',
+                    'Justificativa de N/P': c.invalidJustification || '',
+                    'Justificativa de Atraso': c.lateJustification || '',
+                    'Evidência': c.evidenceName || (c.evidence ? 'Anexo disponível' : '')
+                };
+            });
+
+            const worksheet = XLSX.utils.json_to_sheet(exportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Reclamações");
+
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `Ouvidoria_Simas_Reclamacoes_${dateStr}.xlsx`;
+            XLSX.writeFile(workbook, filename);
+        });
     }
 
     // Initialize Dashboard on load
